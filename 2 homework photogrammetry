@@ -1,0 +1,323 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyPGhOstm+zli1zu8rGWXxwH",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/aivc24024/lenet-images/blob/main/2%20homework%20photogrammetry\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 30,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "1ffXE7i7f5Hm",
+        "outputId": "d142248c-5195-4d08-a393-56e37cdf277b"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Πίνακας Προβολής P:\n",
+            " [[ 1.39840170e+02  1.58089815e+00 -2.63615668e+01  1.55108337e+02]\n",
+            " [-9.12726597e-01  1.41950386e+02  2.14997311e+00 -2.88690647e+02]\n",
+            " [-1.15080234e-02  3.62973712e-04 -5.63994368e-02  1.00000000e+00]]\n"
+          ]
+        }
+      ],
+      "source": [
+        "# α) ερωτημα\n",
+        "import numpy as np\n",
+        "\n",
+        "object_points = [\n",
+        "    [-2.0824, 1.1231, 9.9714],\n",
+        "    [-1.9727, -0.2535, 9.9443],\n",
+        "    [-2.0104, 3.1560, 9.5477],\n",
+        "    [-0.8683, -0.0179, 10.8793],\n",
+        "    [-0.8551, 1.3556, 10.0008],\n",
+        "    [-0.8872, 1.2829, 10.9052],\n",
+        "    [-1.0292, 2.5402, 10.9755],\n",
+        "    [-0.9203, 3.1915, 10.9795],\n",
+        "    [-0.0216, 4.1537, 10.9914],\n",
+        "    [0.0000, 2.0417, 10.0002],\n",
+        "    [1.0255, 3.1893, 10.9647],\n",
+        "    [1.0422, 2.5370, 10.9544],\n",
+        "    [0.9469, 1.3068, 10.8738],\n",
+        "    [0.9403, -0.1906, 10.8603],\n",
+        "    [1.5626, 2.4429, 9.9858],\n",
+        "    [2.5371, 3.1341, 9.9612],\n",
+        "    [2.4938, 1.4519, 9.9527],\n",
+        "    [2.5663, -0.1119, 9.9444]\n",
+        "]\n",
+        "\n",
+        "image_points = [\n",
+        "    [-859.1291, -228.7352],\n",
+        "    [-830.4515, -652.6667],\n",
+        "    [-767.8148, 374.0311],\n",
+        "    [-639.0679, -673.7457],\n",
+        "    [-505.9461, -166.2011],\n",
+        "    [-642.6856, -208.6269],\n",
+        "    [-696.0915, 244.8465],\n",
+        "    [-657.5299, 480.9376],\n",
+        "    [-343.3233, 849.7875],\n",
+        "    [-240.7331, 51.1048],\n",
+        "    [38.5555, 503.6525],\n",
+        "    [43.9229, 253.7913],\n",
+        "    [8.0778, -214.4540],\n",
+        "    [-0.3326, -778.4796],\n",
+        "    [272.7221, 186.5080],\n",
+        "    [614.6407, 427.1809],\n",
+        "    [593.8436, -154.0681],\n",
+        "    [614.2774, -697.6529]\n",
+        "]\n",
+        "\n",
+        "# Δημιουργία πίνακα A (36x12)\n",
+        "A = []\n",
+        "\n",
+        "for i in range(len(object_points)):\n",
+        "    X, Y, Z = object_points[i]\n",
+        "    x, y = image_points[i]\n",
+        "\n",
+        "    # Δημιουργία γραμμών του πίνακα A για το i-οστό σημείο\n",
+        "    row1 = [X, Y, Z, 1, 0, 0, 0, 0, -x * X, -x * Y, -x * Z, -x]\n",
+        "    row2 = [0, 0, 0, 0, X, Y, Z, 1, -y * X, -y * Y, -y * Z, -y]\n",
+        "\n",
+        "    # Προσθήκη γραμμών στον πίνακα A\n",
+        "    A.append(row1)\n",
+        "    A.append(row2)\n",
+        "\n",
+        "# Μετατροπή του A σε numpy array\n",
+        "A = np.array(A)\n",
+        "\n",
+        "# Εφαρμογή SVD\n",
+        "U, S, Vt = np.linalg.svd(A)\n",
+        "\n",
+        "# Λύση: το ιδιοδιάνυσμα που αντιστοιχεί στη μικρότερη ιδιοτιμή (τελευταία γραμμή του Vt)\n",
+        "p = Vt[-1]\n",
+        "\n",
+        "# Κανονικοποίηση για αναγνωσιμότητα (π.χ. να έχει τελευταία τιμή = 1)\n",
+        "p_normalized = p / p[-1]\n",
+        "\n",
+        "# Αναδιάταξη σε πίνακα 3x4\n",
+        "P = p_normalized.reshape((3, 4))\n",
+        "\n",
+        "# Εκτύπωση του πίνακα προβολής P\n",
+        "print(\"Πίνακας Προβολής P:\\n\", P)\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "for i in range(len(object_points)):\n",
+        "    X, Y, Z = object_points[i]\n",
+        "    x, y = image_points[i]\n",
+        "\n",
+        "    # Προβολή του 3D σημείου μέσω του πίνακα P\n",
+        "    point_3d_homogeneous = np.array([X, Y, Z, 1])\n",
+        "    projected_point = P @ point_3d_homogeneous# προβολή του 3D σημειου σε 2D"
+      ],
+      "metadata": {
+        "id": "UJRac95Ljf8T"
+      },
+      "execution_count": 31,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "normal_projected_point = projected_point/projected_point[2] #κανονικοποιηση ετσι ωστε τα σημεια να εχουν απο ομογενεις κανονικες συντεταγμενες\n",
+        "# το projected_point[2] αντιστοιχει στο w των ομογενων συντεταγμενων"
+      ],
+      "metadata": {
+        "id": "Hu15LzrflQ9t"
+      },
+      "execution_count": 32,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "mse=0\n",
+        "\n",
+        "error_x = x - normal_projected_point[0]#αντιστοιχει στο χ\n",
+        "error_y = y - normal_projected_point[1]#αντιστοιχει στο y\n",
+        "mse = error_x**2 + error_y**2\n"
+      ],
+      "metadata": {
+        "id": "hWidbhwflSQk"
+      },
+      "execution_count": 33,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "sum_mse=mse/len(object_points)\n",
+        "print(sum_mse)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "oogXcwsBm6Hs",
+        "outputId": "49208de6-7581-499e-ad5a-209bfa46ffb8"
+      },
+      "execution_count": 34,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "0.014533197937409164\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "# β ερώτημα"
+      ],
+      "metadata": {
+        "id": "oL5C-FE9oGVF"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "P"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "_JAxfyjYtZ6h",
+        "outputId": "e8025dce-e039-4afc-cfd6-0ee361341d58"
+      },
+      "execution_count": 35,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "array([[ 1.39840170e+02,  1.58089815e+00, -2.63615668e+01,\n",
+              "         1.55108337e+02],\n",
+              "       [-9.12726597e-01,  1.41950386e+02,  2.14997311e+00,\n",
+              "        -2.88690647e+02],\n",
+              "       [-1.15080234e-02,  3.62973712e-04, -5.63994368e-02,\n",
+              "         1.00000000e+00]])"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 35
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import numpy as np\n",
+        "from scipy.linalg import rq\n",
+        "\n",
+        "# Συνάρτηση αποσύνθεσης του πίνακα προβολής P\n",
+        "def decomposecamera(P):\n",
+        "    \"\"\"\n",
+        "    Decomposes a camera projection matrix P into the calibration matrix K, rotation matrix Rc_w,\n",
+        "    camera center Pc, principal point pp, and principal vector pv.\n",
+        "\n",
+        "    Parameters:\n",
+        "        P: (3x4) numpy matrix representing the camera projection matrix.\n",
+        "\n",
+        "    Returns:\n",
+        "        K: Camera calibration matrix (3x3).\n",
+        "        Rc_w: Rotation matrix (3x3) defining the world coordinate frame in terms of the camera frame.\n",
+        "        Pc: Camera center position in world coordinates (3x1).\n",
+        "        pp: Principal point in image coordinates (2x1).\n",
+        "        pv: Principal vector (3x1) pointing from the camera center through the principal point.\n",
+        "    \"\"\"\n",
+        "\n",
+        "    # Convenience variables for the columns of P\n",
+        "    p1, p2, p3, p4 = P[:, 0], P[:, 1], P[:, 2], P[:, 3]\n",
+        "\n",
+        "    M = np.column_stack((p1, p2, p3))\n",
+        "    m3 = M[2, :]\n",
+        "\n",
+        "    # Camera center, analytic solution\n",
+        "    X = np.linalg.det(np.column_stack((p2, p3, p4)))\n",
+        "    Y = -np.linalg.det(np.column_stack((p1, p3, p4)))\n",
+        "    Z = np.linalg.det(np.column_stack((p1, p2, p4)))\n",
+        "    T = -np.linalg.det(np.column_stack((p1, p2, p3)))\n",
+        "\n",
+        "    Pc = np.array([X, Y, Z, T]) / np.array([X, Y, Z, T])[3]  # Homogenize\n",
+        "    Pc = Pc[:3]  # Make inhomogeneous\n",
+        "\n",
+        "    # Principal point\n",
+        "    pp = M @ m3\n",
+        "    pp = pp / pp[2]  # Homogenize\n",
+        "    pp = pp[:2]  # Make inhomogeneous\n",
+        "\n",
+        "    # Principal vector pointing out of camera\n",
+        "    pv = np.linalg.det(M) * m3\n",
+        "    pv = pv / np.linalg.norm(pv)\n",
+        "\n",
+        "    # Perform RQ decomposition of M matrix\n",
+        "    K, Rc_w = rq(M)\n",
+        "    K = K / K[2, 2]\n",
+        "    return K\n",
+        "\n",
+        "\n",
+        "# Κλήση της συνάρτησης decomposecamera για την αποσύνθεση του P\n",
+        "K = decomposecamera(P)\n",
+        "\n",
+        "# Εκτύπωση των αποτελεσμάτων\n",
+        "print(\"K (Calibration matrix):\")\n",
+        "print(K)\n"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "Iw7p9DnLtTiB",
+        "outputId": "3a14ae34-bde6-44ec-d932-62a89dcce2f6"
+      },
+      "execution_count": 38,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "K (Calibration matrix):\n",
+            "[[ 2.47201774e+03 -4.63990493e+00 -3.67991476e+01]\n",
+            " [ 0.00000000e+00 -2.46628296e+03 -1.78753583e+01]\n",
+            " [ 0.00000000e+00  0.00000000e+00  1.00000000e+00]]\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
